@@ -1,0 +1,128 @@
+<!DOCTYPE html> 
+<html>
+<head>
+	<title>Good Weather</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+	<link rel="stylesheet" type="text/css" href="css/stylesheet.css">
+	<link rel="touch-icon" href="images/2.svg"/>
+	<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+	<script type="text/javascript"> 
+		function jsonCallback(data){
+			// console.log('jsonCallBack');
+			console.log(data);
+
+		}
+
+		var icons = {"clear-day": "B",
+					"clear-night": "C",
+					"rain": "R",
+					"snow": "G",
+					"sleet": "X",
+					"wind": "S",
+					"fog": "N",
+					"cloudy": "Y",
+					"partly-cloudy-day": "H",
+					"partly-cloudy-night": "I",
+					};
+
+		var cities = { 
+					"vancouver" : {coords :{latitude: 49.25, longitude: -123.119}},
+					"calgary" : {coords :{latitude: 51.05, longitude: -114.085}},
+					"edmonton" : {coords :{latitude: 53.55, longitude: -113.469}},
+					"montreal" : {coords :{latitude: 45.509, longitude: -73.588}},
+					"toronto" : {coords :{latitude: 43.7, longitude: -79.416}},
+					"ottawa" : {coords :{latitude: 45.411, longitude: -75.698}}
+
+
+					}
+
+		function loadWeather(cityCoords){
+
+			console.log(cityCoords)
+
+			var latlng = cityCoords.coords.latitude + "," + cityCoords.coords.longitude;
+
+			var forecastURL = "https://api.forecast.io/forecast/78d039ccf09f6614b51d47a4d0214a57/" + latlng;
+
+			$.ajax({
+				url: forecastURL,
+				jsonpCallback: 'jsonCallback',
+				contentType: "application/json",
+				dataType: 'jsonp',
+				success: function(json){
+					$('#current_temp').html(Math.round((json.currently.temperature - 32) * 5/9) + "&#176;C")
+					$('#current_summary').html(json.currently.summary )
+					$("#current_temp").attr("data-icon", icons[json.currently.icon])
+				},
+				error: function(e){
+					console.log(e.message);
+				}
+			});
+		}
+
+		function loadCity(city){
+			$("#location").html(city);
+
+			if (city.toLowerCase() == "current location"){
+				if (navigator.geolocation){
+					navigator.geolocation.getCurrentPosition(loadWeather, loadDefaultCity);
+				} else {
+					loadDefaultCity;
+				}
+			} else {
+				loadWeather(cities[city.toLowerCase()]);
+			}
+
+			
+		}
+
+		function loadDefaultCity(){
+			loadCity("Vancouver");
+		}
+
+
+		$(document).ready(function(){
+			loadCity("Vancouver");
+
+			$('a.city').bind('click', function(){
+				loadCity($(this).html());
+			})
+		})
+
+
+	</script>
+</head>
+
+<body>
+
+<div data-role="page">
+	<div data-role="panel" id="left-panel" data-theme="C">
+		<ul data-theme="d" data-role="listview">
+			<li data-icon="delete"><a href="#" data-rel="close">Close</a></li>
+			<li data-role="list-divider">Select a City</li>
+				<li><a href="#" class="city" data-rel="close">Current Location</a></li>
+				<li><a href="#" class="city" data-rel="close">vancouver</a></li>
+				<li><a href="#" class="city" data-rel="close">calgary</a></li>
+				<li><a href="#" class="city" data-rel="close">edmonton</a></li>
+				<li><a href="#" class="city" data-rel="close">toronto</a></li>
+				<li><a href="#" class="city" data-rel="close">montreal</a></li>
+				<li><a href="#" class="city" data-rel="close">ottawa</a></li>
+		</ul>
+	</div>
+
+
+	<div data-role="header" data-position="fixed" data-theme="c">
+		<h1>Canadian Weather </h1>
+		<a href="#left-panel" data-icon="bars" data-role="button" data-iconpos="notext" data-iconshadow="false">Menu</a>
+	</div>
+	<div data-role="content" class="content">
+		<h1 id="current_temp" class="icon" data-icon="B">65&#176;F</h1>
+		<p id="current_summary">Partly Cloudy</p>
+		<p id="location">Current Location</p>
+	</div>
+</div>
+
+</body>
+</html>
